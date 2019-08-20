@@ -88,13 +88,13 @@ class Calculation extends Commission
 
 		switch (strtoupper($currency)) {
 			case 'USD':
-				$calculatedFeeInEUR = $this->currency->convert('USD', 'EUR', $calculatedFee);
-				$rawCommissionFee = ($calculatedFeeInEUR < 5) ? $calculatedFee : $this->currency->convert('EUR', 'USD', 5);
+				$calculatedFeeInEUR = $this->currency->convertToEUR('USD', $calculatedFee);
+				$rawCommissionFee = ($calculatedFeeInEUR < 5) ? $calculatedFee : $this->currency->convertToEUR('USD', 5);
 				$commissionFee = $this->formatMoney($rawCommissionFee, 2);	
 				break;
 			case 'JPY':
-				$calculatedFeeInEUR = $this->currency->convert('JPY', 'EUR', $calculatedFee);
-				$rawCommissionFee = ($calculatedFeeInEUR < 5) ? $calculatedFee : $this->currency->convert('EUR', 'JPY', 5);
+				$calculatedFeeInEUR = $this->currency->convertToEUR('JPY', $calculatedFee);
+				$rawCommissionFee = ($calculatedFeeInEUR < 5) ? $calculatedFee : $this->currency->convertToEUR('JPY', 5);
 				$commissionFee = ceil($rawCommissionFee);
 				break;
 			default:
@@ -132,7 +132,7 @@ class Calculation extends Commission
 				foreach ($transactionList as $key => $transaction) {
 					if (date('oW', strtotime($date)) == date('oW', strtotime($transaction[$fields['date']]))) {
 						$transactionCurrency = $transaction[$fields['currency']];
-						$amountWithdrew = $this->convertToEUR($transaction[$fields['amount']], $transactionCurrency);
+						$amountWithdrew = $this->currency->convertToEUR($transaction[$fields['amount']], $transactionCurrency);
 						$totalCashOut = $totalCashOut + $amountWithdrew;
 						$totalCashOutCount++;
 					}
@@ -149,14 +149,14 @@ class Calculation extends Commission
 					$amount = (!$isFreeCommissionFee) ? $amount - $freeAmount : $amount;
 				}
 			} else {
-				$convertedAmount = $this->convertToEUR($amount, $currency);
+				$convertedAmount = $this->currency->convertToEUR($amount, $currency);
 				$isFreeCommissionFee = ($convertedAmount <= parent::$cashOutFreeCharge) ? true : $isFreeCommissionFee;
 				$amount = (!$isFreeCommissionFee) ? 
-					$this->currency->convert('EUR', $currency, ($convertedAmount-parent::$cashOutFreeCharge)) : 
+					$this->currency->convertToEUR($currency, ($convertedAmount-parent::$cashOutFreeCharge)) : 
 					$amount;
 			}
 
-			$calculatedFee = $amount * parent::$cashOutPercentage;
+			$calculatedFee = floatval($amount) * parent::$cashOutPercentage;
 
 			$this->transaction->insert($transactionData);
 
@@ -183,19 +183,19 @@ class Calculation extends Commission
 		$isLegal = $userType == 'legal';
 		switch (strtoupper($currency)) {
 			case 'USD':
-				$calculatedFeeInEUR = $this->currency->convert('USD', 'EUR', $calculatedFee);
+				$calculatedFeeInEUR = $this->currency->convertToEUR('USD', $calculatedFee);
 				$rawCommissionFee = $calculatedFee;
 				if ($isLegal) {
-					$rawCommissionFee = ($calculatedFeeInEUR > 0.5) ? $calculatedFee : $this->currency->convert('EUR', 'USD', 0.5);
+					$rawCommissionFee = ($calculatedFeeInEUR > 0.5) ? $calculatedFee : $this->currency->convertToEUR('USD', 0.5);
 				}
 				$rawCommissionFee = (!$noCommissionFee) ? $rawCommissionFee : 0;
 				$commissionFee = $this->formatMoney($rawCommissionFee, 2);
 				break;
 			case 'JPY':
-				$calculatedFeeInEUR = $this->currency->convert('JPY', 'EUR', $calculatedFee);
+				$calculatedFeeInEUR = $this->currency->convertToEUR('JPY', $calculatedFee);
 				$rawCommissionFee = $calculatedFee;
 				if ($isLegal) {
-					$rawCommissionFee = ($calculatedFeeInEUR > 0.5) ? $calculatedFee : $this->currency->convert('EUR', 'JPY', 0.5);
+					$rawCommissionFee = ($calculatedFeeInEUR > 0.5) ? $calculatedFee : $this->currency->convertToEUR('JPY', 0.5);
 				}
 				$rawCommissionFee = (!$noCommissionFee) ? $rawCommissionFee : 0;
 				$commissionFee = ceil($rawCommissionFee);
@@ -211,30 +211,6 @@ class Calculation extends Commission
 		}
 
 		return $commissionFee;
-	}
-
-	/**
-	* Converts amount to EUR
-	*
-	* @param $amount float
-	* @param $currency string
-	*
-	* @return float
-	*/
-	private function convertToEUR($amount, $currency)
-	{
-		switch (strtoupper($currency)) {
-			case 'USD':
-				$amount = $this->currency->convert('USD', 'EUR', $amount);
-				break;
-			case 'JPY':
-				$amount = $this->currency->convert('JPY', 'EUR', $amount);
-				break;
-			default:
-				break;
-		}
-
-		return $amount;
 	}
 }
 ?>
