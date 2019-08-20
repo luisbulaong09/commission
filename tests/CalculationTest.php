@@ -9,9 +9,9 @@ class CalculationTest extends TestCase
         $calculation = new Calculation();
 
         $data = [
-            '2016-02-19', 5, 'natural', 'cash_out', 3000000, 'JPY'
+            '2014-12-31', 4, 'natural', 'cash_out', 1200.00, 'EUR'
         ];
 
-        $this->assertEquals(8612, $calculation->getCommissionFee($data));
+        $this->assertEquals(0.60, $calculation->getCommissionFee($data));
     }
 }

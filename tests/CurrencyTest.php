@@ -8,13 +8,13 @@ class CurrencyTest extends TestCase
     {
         $currency = new Currency();
 
-        $this->assertEquals('Unknown currency.', $currency->convertToEUR('PHP', 100));
+        $this->assertEquals('Unknown currency.', $currency->convert('PHP', 'EUR', 100));
     }
 
     public function testConvert()
     {
         $currency = new Currency();
 
-        $this->assertEquals(23160.66, $currency->convertToEUR('JPY', 3000000));
+        $this->assertEquals(23160.657762680457, $currency->convert('JPY', 'EUR', 3000000));
     }
 }

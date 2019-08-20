@@ -16,12 +16,12 @@ class Commission
 	];
 
 	/**
-	* cash in percentage 0.03% 
+	* Cash in percentage 0.03% 
 	*/
 	protected static $cashInPercentage = 0.0003;
 
 	/**
-	* cash in percentage 0.3% 
+	* Cash in percentage 0.3% 
 	*/
 	protected static $cashOutPercentage = 0.003;
 
@@ -34,5 +34,15 @@ class Commission
 	* Number of discounted transactions per week
 	*/
 	protected static $cashOutNumberOfDiscountedTransactionPerWeek = 3;
+
+	/**
+	* Maximum cash in commission fee in EUR
+	*/
+	protected static $maxCashInCommissionFee = 5;
+
+	/**
+	* Minimum cash out commission fee for legal person
+	*/
+	protected static $minCashOutCommissionFeeForLegalPerson = 0.5;
 }
 ?>

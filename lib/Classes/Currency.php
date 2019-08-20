@@ -4,35 +4,79 @@ namespace Commission\Classes;
 class Currency
 {
 	/**
-	* Currency exchange rates to EUR
+	* Currency exchange rates
 	*/
 	protected static $exchangeRates = [
 		'EUR' => 1,
 		'USD' => 1.1497,
-		'JPY' => 129.53,
-		//'USD_EUR' => 0.87,
-		//'JPY_EUR' => 0.00772022
+		'JPY' => 129.53
 	];
 
 	/**
 	* Converts amount from a currency to another currency
 	*
-	* @param $currency string
-	* @param $amount float 
+	* @param $from string
+	* @param $to string
+	* @param amount float 
 	*
 	* @return float
 	*/
-	public function convertToEUR($currency, $amount)
+	public function convert($from, $to, $amount)
 	{
-		if (array_key_exists($currency, self::$exchangeRates)) {
-			if (self::$exchangeRates[$currency] > self::$exchangeRates['EUR']) {
-				return self::$exchangeRates[$currency] / $amount;
-			} else {
-				return self::$exchangeRates[$currency] * $amount;
-			}
+		$from = strtoupper($from);
+		$to = strtoupper($to);
+
+		if ($this->isCurrenciesInList([$from, $to])) {
+			$rate = $this->getRate($from, $to);
+
+			return $rate * $amount;
 		} else {
-			return 'Unknown currency '.$currency;
+			return 'Unknown currency.';
 		}
+	}
+
+
+	/**
+	* Calculate conversion rate of 2 currencies
+	*
+	* @param $from string
+	* @param $to string
+	*
+	* @return float
+	*/
+	private function getRate($from, $to)
+	{
+		$fromRate = self::$exchangeRates[$from];
+		$toRate = self::$exchangeRates[$to];
+		$rate = $toRate;
+
+		if ($fromRate > $toRate) {
+			$rate = $toRate / $fromRate;
+		}
+
+		return $rate;
+	}
+
+
+	/**
+	* Check if currencies are present in list
+	*
+	* @param $from string
+	* @param $target string
+	*
+	* @return boolean
+	*/
+	private function isCurrenciesInList($currencies)
+	{
+		$result = true;
+
+		foreach ($currencies as $key => $currency) {
+			if(!array_key_exists($currency, self::$exchangeRates)) {
+				$result = false;
+			}
+		}
+
+		return $result;
 	}
 }
 ?>

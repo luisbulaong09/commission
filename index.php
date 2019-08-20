@@ -10,12 +10,15 @@ if (isset($argv[1])) {
 	if ($fileExtension == 'csv') {
 		$transactions = $excel->read();
 
-		$calculate = new \Commission\Classes\Calculation();
+		if ($transactions) {
+			$calculate = new \Commission\Classes\Calculation();
 
-		foreach ($transactions as $transaction_key => $transaction_data) {
-			echo $calculate->getCommissionFee($transaction_data).PHP_EOL;
+			foreach ($transactions as $transaction_key => $transaction_data) {
+				echo $calculate->getCommissionFee($transaction_data).PHP_EOL;
+			}
+		} else {
+			echo 'File not found.';
 		}
-
 	} else {
 		if (!$fileExtension) {
 			echo 'File not found.';

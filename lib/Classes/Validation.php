@@ -41,6 +41,10 @@ class Validation
 		foreach ($transactionData as $index => $value) {
 			$key = $requiredFields[$index];
 			if (is_array($this->rules[$key])) {
+				if ($key == 'currency') {
+					$value = strtoupper($value);
+				}
+
 				if (!(in_array($value, $this->rules[$key]))) {
 					$isValid = false;
 				}

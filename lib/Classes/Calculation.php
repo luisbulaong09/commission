@@ -66,6 +66,8 @@ class Calculation extends Commission
 			} else {
 				$commissionFee = $this->calculateCashOutFee($transactionData, $fields);
 			}
+
+			$commissionFee = $this->formatCommissionFee($commissionFee, $transactionData[$fields['currency']]);
 		}
 
 		return $commissionFee;
@@ -86,22 +88,10 @@ class Calculation extends Commission
 
 		$calculatedFee = $amount * parent::$cashInPercentage;
 
-		switch (strtoupper($currency)) {
-			case 'USD':
-				$calculatedFeeInEUR = $this->currency->convertToEUR('USD', $calculatedFee);
-				$rawCommissionFee = ($calculatedFeeInEUR < 5) ? $calculatedFee : $this->currency->convertToEUR('USD', 5);
-				$commissionFee = $this->formatMoney($rawCommissionFee, 2);	
-				break;
-			case 'JPY':
-				$calculatedFeeInEUR = $this->currency->convertToEUR('JPY', $calculatedFee);
-				$rawCommissionFee = ($calculatedFeeInEUR < 5) ? $calculatedFee : $this->currency->convertToEUR('JPY', 5);
-				$commissionFee = ceil($rawCommissionFee);
-				break;
-			default:
-				$rawCommissionFee = ($calculatedFee < 5) ? $calculatedFee : 5;
-				$commissionFee = $this->formatMoney($rawCommissionFee, 2);
-				break;
-		}
+		$calculatedFeeInEUR = $this->currency->convert($currency, 'EUR', $calculatedFee);
+		$commissionFee = ($calculatedFeeInEUR < parent::$maxCashInCommissionFee) 
+			? $calculatedFee 
+			: $this->currency->convert('EUR', $currency, parent::$maxCashInCommissionFee);
 
 		return $commissionFee;	
 	}
@@ -132,7 +122,7 @@ class Calculation extends Commission
 				foreach ($transactionList as $key => $transaction) {
 					if (date('oW', strtotime($date)) == date('oW', strtotime($transaction[$fields['date']]))) {
 						$transactionCurrency = $transaction[$fields['currency']];
-						$amountWithdrew = $this->currency->convertToEUR($transactionCurrency, $transaction[$fields['amount']]);
+						$amountWithdrew = $this->currency->convert($transactionCurrency, 'EUR', $transaction[$fields['amount']]);
 						$totalCashOut = $totalCashOut + $amountWithdrew;
 						$totalCashOutCount++;
 					}
@@ -149,14 +139,14 @@ class Calculation extends Commission
 					$amount = (!$isFreeCommissionFee) ? $amount - $freeAmount : $amount;
 				}
 			} else {
-				$convertedAmount = $this->currency->convertToEUR($currency, $amount);
+				$convertedAmount = $this->currency->convert($currency, 'EUR', $amount);
 				$isFreeCommissionFee = ($convertedAmount <= parent::$cashOutFreeCharge) ? true : $isFreeCommissionFee;
 				$amount = (!$isFreeCommissionFee) ? 
-					$this->currency->convertToEUR($currency, ($convertedAmount-parent::$cashOutFreeCharge)) : 
+					$this->currency->convert('EUR', $currency, ($convertedAmount-parent::$cashOutFreeCharge)) : 
 					$amount;
 			}
 
-			$calculatedFee = floatval($amount) * parent::$cashOutPercentage;
+			$calculatedFee = $amount * parent::$cashOutPercentage;
 
 			$this->transaction->insert($transactionData);
 
@@ -181,36 +171,35 @@ class Calculation extends Commission
 	private function convertCashOutCommissionFee($calculatedFee, $currency, $userType, $noCommissionFee=false)
 	{
 		$isLegal = $userType == 'legal';
-		switch (strtoupper($currency)) {
-			case 'USD':
-				$calculatedFeeInEUR = $this->currency->convertToEUR('USD', $calculatedFee);
-				$rawCommissionFee = $calculatedFee;
-				if ($isLegal) {
-					$rawCommissionFee = ($calculatedFeeInEUR > 0.5) ? $calculatedFee : $this->currency->convertToEUR('USD', 0.5);
-				}
-				$rawCommissionFee = (!$noCommissionFee) ? $rawCommissionFee : 0;
-				$commissionFee = $this->formatMoney($rawCommissionFee, 2);
-				break;
-			case 'JPY':
-				$calculatedFeeInEUR = $this->currency->convertToEUR('JPY', $calculatedFee);
-				$rawCommissionFee = $calculatedFee;
-				if ($isLegal) {
-					$rawCommissionFee = ($calculatedFeeInEUR > 0.5) ? $calculatedFee : $this->currency->convertToEUR('JPY', 0.5);
-				}
-				$rawCommissionFee = (!$noCommissionFee) ? $rawCommissionFee : 0;
-				$commissionFee = ceil($rawCommissionFee);
-				break;
-			default:
-				$rawCommissionFee = $calculatedFee;
-				if ($isLegal) {
-					$rawCommissionFee = ($calculatedFee > 0.5) ? $calculatedFee : 0.5;
-				}
-				$rawCommissionFee = (!$noCommissionFee) ? $rawCommissionFee : 0;
-				$commissionFee = $this->formatMoney($rawCommissionFee, 2);
-				break;
+
+		$calculatedFeeInEUR = $this->currency->convert($currency, 'EUR', $calculatedFee);
+		$rawCommissionFee = $calculatedFee;
+		if ($isLegal) {
+			$rawCommissionFee = ($calculatedFeeInEUR > parent::$minCashOutCommissionFeeForLegalPerson) 
+				? $calculatedFee 
+				: $this->currency->convert('EUR', $currency, parent::$minCashOutCommissionFeeForLegalPerson);
 		}
 
+		$commissionFee = (!$noCommissionFee) ? $rawCommissionFee : 0;
+
 		return $commissionFee;
+	}
+
+	/**
+	* Format commission fee based on given currency
+	*
+	* @param $amount float
+	* @param $currency string
+	*
+	* @return int or float
+	*/
+	private function formatCommissionFee($amount, $currency)
+	{
+		if ($currency == 'JPY') {
+			return ceil($amount);
+		} else {
+			return $this->formatMoney($amount, 2);
+		}
 	}
 }
 ?>
