@@ -24,7 +24,6 @@ class Currency
 	*/
 	public function convertToEUR($currency, $amount)
 	{
-		echo $amount;
 		if (array_key_exists($currency, self::$exchangeRates)) {
 			if (self::$exchangeRates[$currency] > self::$exchangeRates['EUR']) {
 				return self::$exchangeRates[$currency] / $amount;

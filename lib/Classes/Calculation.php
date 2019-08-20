@@ -132,7 +132,7 @@ class Calculation extends Commission
 				foreach ($transactionList as $key => $transaction) {
 					if (date('oW', strtotime($date)) == date('oW', strtotime($transaction[$fields['date']]))) {
 						$transactionCurrency = $transaction[$fields['currency']];
-						$amountWithdrew = $this->currency->convertToEUR($transaction[$fields['amount']], $transactionCurrency);
+						$amountWithdrew = $this->currency->convertToEUR($transactionCurrency, $transaction[$fields['amount']]);
 						$totalCashOut = $totalCashOut + $amountWithdrew;
 						$totalCashOutCount++;
 					}
@@ -149,7 +149,7 @@ class Calculation extends Commission
 					$amount = (!$isFreeCommissionFee) ? $amount - $freeAmount : $amount;
 				}
 			} else {
-				$convertedAmount = $this->currency->convertToEUR($amount, $currency);
+				$convertedAmount = $this->currency->convertToEUR($currency, $amount);
 				$isFreeCommissionFee = ($convertedAmount <= parent::$cashOutFreeCharge) ? true : $isFreeCommissionFee;
 				$amount = (!$isFreeCommissionFee) ? 
 					$this->currency->convertToEUR($currency, ($convertedAmount-parent::$cashOutFreeCharge)) : 
