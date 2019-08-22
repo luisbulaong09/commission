@@ -34,22 +34,6 @@ class Calculation extends Commission
 	}
 
 	/**
-	* Round up amount then formats to money
-	*
-	* @param $amount float
-	* @param $precision int
-	*
-	* @return float
-	*/
-	public function formatMoney($amount, $precision)
-	{
-		$pow = pow (10, $precision); 
-    	$roundedValue = (ceil( $pow * $amount ) + ceil($pow * $amount - ceil($pow * $amount))) / $pow;
-
-    	return number_format($roundedValue, 2);
-	}
-
-	/**
 	* Compute commission based on transaction type
 	*
 	* @param $transactionData array
@@ -67,7 +51,7 @@ class Calculation extends Commission
 				$commissionFee = $this->calculateCashOutFee($transactionData, $fields);
 			}
 
-			$commissionFee = $this->formatCommissionFee($commissionFee, $transactionData[$fields['currency']]);
+			$commissionFee = $this->currency->format($commissionFee, $transactionData[$fields['currency']]);
 		}
 
 		return $commissionFee;
@@ -183,23 +167,6 @@ class Calculation extends Commission
 		$commissionFee = (!$noCommissionFee) ? $rawCommissionFee : 0;
 
 		return $commissionFee;
-	}
-
-	/**
-	* Format commission fee based on given currency
-	*
-	* @param $amount float
-	* @param $currency string
-	*
-	* @return int or float
-	*/
-	private function formatCommissionFee($amount, $currency)
-	{
-		if ($currency == 'JPY') {
-			return ceil($amount);
-		} else {
-			return $this->formatMoney($amount, 2);
-		}
 	}
 }
 ?>

@@ -78,5 +78,26 @@ class Currency
 
 		return $result;
 	}
+
+	/**
+	* Format money based on given currency
+	*
+	* @param $amount float
+	* @param $currency string
+	*
+	* @return int or float
+	*/
+	public function format($amount, $currency)
+	{
+		if ($currency == 'JPY') {
+			return ceil($amount);
+		} else {
+			$precision = 2;
+			$pow = pow (10, $precision);
+			$roundedValue = (ceil( $pow * $amount ) + ceil($pow * $amount - ceil($pow * $amount))) / $pow;
+
+			return number_format($roundedValue, 2);
+		}
+	}
 }
 ?>
